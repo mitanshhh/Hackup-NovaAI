@@ -70,11 +70,10 @@ export default function ChatArea({
           </div>
           
           <h2 className="text-2xl font-semibold text-white mb-3">
-             Initialize <span className="text-brand-primary">"{activeProject.name}"</span>
+             Initialize "{activeProject.name}"
           </h2>
           <p className="text-gray-400 mb-10 leading-relaxed">
             Please upload a security log CSV file to start the analysis. 
-            Insights will process and classify the logs for querying.
           </p>
 
           <div className="relative group overflow-hidden">
@@ -121,7 +120,7 @@ export default function ChatArea({
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-red-600 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(249,115,22,0.3)]">
                 <Bot className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-4xl font-semibold tracking-tight text-white mb-3">Insights <span className="text-brand-primary">AI</span></h1>
+              <h1 className="text-4xl font-semibold tracking-tight text-white mb-3">Insights</h1>
               <p className="text-gray-400 text-lg mb-8 max-w-md">Ready to analyze logs for {activeProject.name}.</p>
             </div>
           ) : (
@@ -156,7 +155,7 @@ export default function ChatArea({
             </button>
           </form>
           <div className="text-center mt-3 text-xs text-gray-600 font-medium tracking-wide">
-            Insights AI can make mistakes. Verify critical security alerts.
+            Insights can make mistakes. Verify critical security alerts.
           </div>
         </div>
       </div>

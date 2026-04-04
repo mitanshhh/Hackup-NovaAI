@@ -56,11 +56,11 @@ export default function Sidebar({ projects, activeProjectId, onSelectProject, on
   return (
     <div className="w-64 h-full bg-bg-sidebar border-r border-border flex flex-col pt-4 pb-6 px-4 shrink-0">
       {/* Header */}
-      <Link href="/dashboard" className="flex items-center gap-2 mb-8 px-2 cursor-pointer">
-        <div className="w-8 h-8 rounded-md bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center flex-shrink-0 shadow-[0_0_15px_rgba(249,115,22,0.3)]">
-          <span className="text-white font-bold text-lg">N</span>
+      <Link href="/dashboard" className="flex items-center gap-3 mb-8 px-2 cursor-pointer group">
+        <div className="w-10 h-10 flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105">
+           <img src="/logo.png" alt="Insights Logo" className="w-full h-full object-contain" />
         </div>
-        <h1 className="text-xl font-semibold tracking-wide text-white">Insights</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-white group-hover:text-brand-primary transition-colors">Insights</h1>
       </Link>
 
       {/* New Project Button */}
@@ -88,16 +88,6 @@ export default function Sidebar({ projects, activeProjectId, onSelectProject, on
             )}
           >
             <div className="flex items-center gap-2 truncate">
-              {/* Status indicator */}
-              {project.status === "processing" && (
-                <Loader2 className="w-3 h-3 text-yellow-400 animate-spin shrink-0" />
-              )}
-              {project.status === "ready" && (
-                <CheckCircle2 className="w-3 h-3 text-green-500 shrink-0" />
-              )}
-              {project.status === "error" && (
-                <AlertCircle className="w-3 h-3 text-red-400 shrink-0" />
-              )}
               <span className="text-sm truncate">{project.name}</span>
             </div>
             <button 

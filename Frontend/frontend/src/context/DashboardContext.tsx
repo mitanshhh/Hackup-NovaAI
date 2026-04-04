@@ -31,6 +31,11 @@ interface DashboardContextType {
   uploadCSV: (projectId: string, csvFile: File) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
   sendMessage: (content: string) => Promise<void>;
+  
+  // Threat Analysis
+  threatReport: any;
+  isThreatLoading: boolean;
+  runThreatSweep: () => Promise<void>;
 }
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
@@ -38,29 +43,54 @@ const DashboardContext = createContext<DashboardContextType | undefined>(undefin
 export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Record<string, Message[]>>({});
+  const [messages, setMessages] = useState<Record<string, Message[]>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('insights_messages');
+      return saved ? JSON.parse(saved) : {};
+    }
+    return {};
+  });
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
+  
+  // Threat Analysis Storage (Keyed by project ID)
+  const [threatReports, setThreatReports] = useState<Record<string, any>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('insights_threat_reports');
+      return saved ? JSON.parse(saved) : {};
+    }
+    return {};
+  });
+  const [isThreatLoading, setIsThreatLoading] = useState(false);
 
-  // ── Fetch Projects from Backend (Eliminating localStorage mock) ──────────────
-    const fetchProjects = async () => {
-      try {
-        const res = await fetch("/api/projects", { credentials: "include" });
-        if (res.ok) {
-          const data = await res.json();
-          // Normalize csvUploaded from integer to boolean
-          const normalized = data.map((p: any) => ({
-            ...p,
-            csvUploaded: !!p.csvUploaded
-          }));
-          setProjects(normalized);
-          if (normalized.length > 0 && !activeProjectId) {
-            setActiveProjectId(normalized[0].id);
-          }
+  // Auto-persist to localStorage
+  useEffect(() => {
+    localStorage.setItem('insights_messages', JSON.stringify(messages));
+  }, [messages]);
+
+  useEffect(() => {
+    localStorage.setItem('insights_threat_reports', JSON.stringify(threatReports));
+  }, [threatReports]);
+  
+  const threatReport = activeProjectId ? threatReports[activeProjectId] : null;
+
+  const fetchProjects = async () => {
+    try {
+      const res = await fetch("/api/projects", { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        const normalized = data.map((p: any) => ({
+          ...p,
+          csvUploaded: !!p.csvUploaded
+        }));
+        setProjects(normalized);
+        if (normalized.length > 0 && !activeProjectId) {
+          setActiveProjectId(normalized[0].id);
         }
-      } catch (e) {
-        console.error("Error fetching projects:", e);
       }
-    };
+    } catch (e) {
+      console.error("Error fetching projects:", e);
+    }
+  };
 
   useEffect(() => {
     fetchProjects();
@@ -68,7 +98,6 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
   const activeProject = projects.find(p => p.id === activeProjectId) || null;
 
-  // ── Create Project (name only) ──────────────────────────────────────────────
   const addProject = async (name: string) => {
     try {
       const res = await fetch("/api/project", {
@@ -106,17 +135,50 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       });
 
       const data = await res.json();
-      const newStatus: ProjectStatus = res.ok && data.db_ready ? "ready" : "error";
+      const newStatus: ProjectStatus = res.ok ? "ready" : "error";
       
       setProjects(prev =>
         prev.map(p => p.id === projectId ? { ...p, status: newStatus, csvUploaded: true } : p)
       );
+      
+      // Clear threat report for THIS project since new data was uploaded
+      setThreatReports(prev => ({ ...prev, [projectId]: null }));
     } catch (err) {
       setProjects(prev =>
         prev.map(p => p.id === projectId ? { ...p, status: "error" } : p)
       );
     }
   };
+
+  // ── Run Threat Sweep (Analysis) ──────────────────────────────────────────
+  const runThreatSweep = React.useCallback(async () => {
+    const pId = activeProjectId; // Capture current ID
+    if (!activeProject?.csvUploaded || !pId) return;
+    
+    setIsThreatLoading(true);
+    try {
+      console.log(`[DASHBOARD_CONTEXT] Fetching threat sweep for ${pId}...`);
+      const res = await fetch("/api/threat/sweep", { credentials: "include" });
+      
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Server Error (${res.status})`);
+      }
+
+      const data = await res.json();
+      console.log(`[DASHBOARD_CONTEXT] Response received:`, data);
+      
+      if (data.error) {
+         throw new Error(data.error);
+      }
+      setThreatReports(prev => ({ ...prev, [pId]: data }));
+    } catch (e: any) {
+      console.error("[DASHBOARD_CONTEXT] Analysis failed:", e);
+      throw e;
+    } finally {
+      setIsThreatLoading(false);
+    }
+  }, [activeProject, activeProjectId]);
 
   const deleteProject = async (id: string) => {
     try {
@@ -198,7 +260,8 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     <DashboardContext.Provider value={{
       projects, activeProjectId, activeProject, messages,
       isRightPanelOpen, setIsRightPanelOpen,
-      setActiveProjectId, addProject, uploadCSV, deleteProject, sendMessage
+      setActiveProjectId, addProject, uploadCSV, deleteProject, sendMessage,
+      threatReport, isThreatLoading, runThreatSweep
     }}>
       {children}
     </DashboardContext.Provider>

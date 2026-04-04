@@ -19,3 +19,28 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, sans-serif;
 }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f0f11;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 10px;
+  border: 2px solid #0f0f11;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #f97316; /* Brand orange on hover */
+}
+
+/* For specific panels using panel background */
+.bg-bg-panel::-webkit-scrollbar-track {
+  background: #161618;
+}

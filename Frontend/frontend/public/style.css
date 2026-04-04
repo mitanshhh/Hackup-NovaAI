@@ -1091,3 +1091,14 @@ a:hover {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 24px;
 }
+
+#logo{
+    position: relative;
+    bottom: -6px;
+    height: 45px;
+}
+
+.logo-text {
+    font-size: 1.75rem;
+
+}

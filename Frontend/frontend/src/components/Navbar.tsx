@@ -30,6 +30,14 @@ export default function Navbar({ isRightPanelOpen, setIsRightPanelOpen }: Navbar
       <div className="flex items-center gap-6">
         
         <Link 
+          href="/" 
+          className="flex items-center gap-2.5 text-gray-400 hover:text-white transition-all text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-white/5 active:scale-95"
+        >
+          <img src="/logo.png" alt="Home" className="w-5 h-5 object-contain opacity-80" />
+          <span>Home</span>
+        </Link>
+
+        <Link 
           href="/dashboard/analysis" 
           className={cn(
             "flex items-center gap-2 transition-colors text-sm font-medium hover:bg-white/5 px-3 py-1.5 rounded-lg",

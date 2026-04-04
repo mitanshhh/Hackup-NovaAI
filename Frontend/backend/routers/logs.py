@@ -207,11 +207,18 @@ async def threat_sweep(request: Request):
     decode_token(token)
     
     try:
+        print(f"📡 [DEBUG] Running automated threat sweep on {LOGS_DB_PATH}...")
         report = run_automated_threat_sweep(db_path=LOGS_DB_PATH)
-        # Prompt says: Return the automated_threat_report.json data as response.
-        # If it doesn't exist, we take the result of sweep.
+        print(f"✅ [DEBUG] Sweep successful. Report keys: {list(report.keys()) if isinstance(report, dict) else 'Not a dict'}")
+        if isinstance(report, dict) and "log_analyses" in report:
+            print(f"📊 [DEBUG] Found {len(report['log_analyses'])} log analyses.")
+        else:
+            print(f"⚠️ [DEBUG] Report does not contain 'log_analyses' or is not a dict: {report}")
         return report
     except Exception as e:
+        import traceback
+        print(f"❌ [DEBUG] Sweep failed: {e}")
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/api/sql")

@@ -11,8 +11,17 @@ from dotenv import load_dotenv
 
 from llm_prompting import analyze_soc_threat
 
-env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
-load_dotenv(env_path)
+# Try loading from Hackup/.env (if in Backend/)
+env_path_up = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
+# Try loading from current dir (if in Hackup/ or root)
+env_path_cur = os.path.abspath(os.path.join(os.path.dirname(__file__), ".env"))
+
+if os.path.exists(env_path_up):
+    load_dotenv(env_path_up)
+elif os.path.exists(env_path_cur):
+    load_dotenv(env_path_cur)
+else:
+    load_dotenv() # Fallback to standard
 
 def csv_to_sqlite_db(csv_path: str, db_path: str, table_name: str = "security_logs"):
     """
@@ -56,10 +65,11 @@ PAGE_SIZE = 50
 # their own connections, so this failing on import is harmless.
 try:
     if API_KEY:
+        from groq import Groq
         client = Groq(api_key=API_KEY)
     else:
         client = None
-        print("[main.py] Warning: GROQ_API_KEY is not set.")
+        print(f"[main.py] Warning: GROQ_API_KEY not found in {env_path_up} or {env_path_cur}.")
     conn   = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -171,7 +181,7 @@ Question: {user_query}
 """
     try:
         res = client.chat.completions.create(
-            model="openai/gpt-oss-20b",
+            model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=10
         )
@@ -295,7 +305,7 @@ Rules:
 Question: {user_query}
 """
     res = client.chat.completions.create(
-        model="openai/gpt-oss-20b",
+        model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}]
     )
     return res.choices[0].message.content.strip()
@@ -313,7 +323,7 @@ Please provide the corrected SQL query to fix this SQLite error.
 Return ONLY the specific SQLite query without explanations, markdown, or chat.
 """
     res = client.chat.completions.create(
-        model="openai/gpt-oss-20b",
+        model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}]
     )
     return clean_sql(res.choices[0].message.content.strip())
@@ -439,10 +449,19 @@ def run_automated_threat_sweep(db_path=None, batch_size=25):
             SELECT ip_address, target_label, content, time,
                    group_concat(time) as time_list, count(*) as event_count
             FROM security_logs
-            WHERE target_label NOT IN ('Successful Login', 'Connection Closed (Preauth)', 'Session Status Change')
+            WHERE target_label NOT IN ('Connection Closed (Preauth)', 'Session Status Change')
                OR content LIKE '%admin%'
+               OR target_label LIKE '%Failure%'
+               OR target_label LIKE '%Invalid%'
             GROUP BY ip_address, target_label
-            ORDER BY event_count DESC
+            ORDER BY 
+              CASE 
+                WHEN target_label LIKE '%PAM%' THEN 1
+                WHEN target_label LIKE '%Failed%' THEN 2
+                WHEN target_label LIKE '%Invalid%' THEN 3
+                ELSE 4
+              END ASC,
+              event_count DESC
         """
         local_cur.execute(sql)
         rows = local_cur.fetchall()

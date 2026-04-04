@@ -55,6 +55,12 @@ CONTEXT:
 DATA:
 {context_string}
 
+INSTRUCTIONS:
+1. Identify all security threats in the data.
+2. Prioritize **Critical** and **High** severity events (e.g., successful brute force or admin attempts).
+3. Do **NOT** ignore Medium or Low events (e.g., occasional connection failures or individual invalid users).
+4. For every group in the data, decide if it constitutes a threat and include it in 'log_analyses'.
+
 OUTPUT FORMAT — return a single, valid JSON object using EXACTLY this schema:
 {{
   "executive_summary": "string — high-level summary of the threat picture",

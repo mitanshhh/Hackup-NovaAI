@@ -197,7 +197,7 @@ async def auth_check(request: Request):
 async def google_auth(request: Request):
     redirect_uri = os.getenv(
         "GOOGLE_REDIRECT_URI",
-        "http://localhost:8000/api/auth/google/callback"
+        "https://backend-8v8h.onrender.com/api/auth/google/callback"
     )
     return await oauth.google.authorize_redirect(request, redirect_uri)
 

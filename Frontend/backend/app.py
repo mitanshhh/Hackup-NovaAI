@@ -181,7 +181,7 @@ google = oauth.register(
 
 @app.route('/api/auth/google')
 def google_auth():
-    redirect_uri = 'http://localhost:3000/api/auth/google/callback'
+    redirect_uri = 'https://backend-8v8h.onrender.com/api/auth/google/callback'
     return google.authorize_redirect(redirect_uri)
 
 @app.route('/api/auth/google/callback')

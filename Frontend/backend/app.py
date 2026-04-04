@@ -10,7 +10,15 @@ import datetime
 import sqlite3
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # for hackathon; restrict later
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # Load env variables from root folder
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
@@ -504,4 +512,4 @@ def project_threat_sweep(project_id):
 
 
 if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+    app.run(port=8000, debug=True)

@@ -1,0 +1,9 @@
+run = "sh start.sh"
+entrypoint = "main.py"
+
+[nix]
+channel = "stable-23_11"
+
+[ports]
+3000 = "https-proxy"
+8000 = "none"

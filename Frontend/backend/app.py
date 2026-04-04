@@ -264,6 +264,7 @@ def forgot_password():
             'email': email
         }, app.config['SECRET_KEY'], algorithm='HS256')
         
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
         reset_link = f"http://localhost:3000/login.html?reset_token={token}"
         msg = MailMessage("Password Reset Request", 
                       sender=app.config['MAIL_USERNAME'],

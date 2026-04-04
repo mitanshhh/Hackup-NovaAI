@@ -17,6 +17,13 @@ app = FastAPI(
     version="2.0.0",
 )
 
+
+
+
+@app.get("/")
+def home():
+    return {"message": "API working"}
+
 # ── Session middleware (required by authlib OAuth for state/nonce storage) ──
 app.add_middleware(
     SessionMiddleware,
